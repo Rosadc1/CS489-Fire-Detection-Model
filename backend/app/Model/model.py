@@ -8,7 +8,6 @@ class CNN(nn.Module):
     def __init__(self, num_classes=2, pretrained=False):
         super(CNN, self).__init__()
 
-
     def forward(self, x):
         return x
 
