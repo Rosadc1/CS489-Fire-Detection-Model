@@ -16,7 +16,7 @@ import argparse
 config_args = argparse.ArgumentParser()
 
 #----------------------------------- Dataset Configs -----------------------------------#
-config_args.add_argument('--dataset_dir', type = str, default = "../Dataset/", help = "The root directory of the dataset")
+config_args.add_argument('--dataset_dir', type = str, default = "../../data/classification/Dataset", help = "The root directory of the dataset")
 config_args.add_argument('--image_dir', type = str, default = "Images", help = "The root directory of the image files")
 config_args.add_argument('--mask_dir', type = str, default = "Masks", help = "The root directory of the mask files")
 config_args.add_argument('--csv_file', type = str, default = "dataset.csv", help = "CSV file name")

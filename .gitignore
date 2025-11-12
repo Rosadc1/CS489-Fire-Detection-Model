@@ -214,3 +214,6 @@ backend/data/objectDetection/Dataset/*
 
 !backend/data/classification/Dataset/README.md
 !backend/data/objectDetection/Dataset/README.md
+
+# model
+backend/app/Model/yolov8n.pt

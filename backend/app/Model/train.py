@@ -130,6 +130,7 @@ def validate(
     
     return avg_loss, acc, dice, iou, fpr, fnr
 
+@torch.no_grad()
 def test(
     model: nn.Module,
     dataloader: DataLoader,
@@ -162,26 +163,25 @@ def test(
     """
     model.eval()
     all_preds, all_masks = [], []
-    
-    with torch.no_grad():
-        for imgs, masks, image_ids in dataloader:
-            imgs = imgs.to(device)
-            masks = masks.to(device)
 
-            outputs = model(imgs)
-            probability = torch.softmax(outputs, dim=1)
-            pred_classes = torch.argmax(probability, dim=1)
+    for imgs, masks, image_ids in dataloader:
+        imgs = imgs.to(device)
+        masks = masks.to(device)
 
-            all_preds.extend(pred_classes.cpu().numpy().flatten())
-            all_masks.extend(masks.cpu().numpy().flatten())
+        outputs = model(imgs)
+        probability = torch.softmax(outputs, dim=1)
+        pred_classes = torch.argmax(probability, dim=1)
 
-            for i, imgage_id in enumerate(image_ids):
-                fold_dir = os.path.join(save_image_dir, imgage_id)
-                os.makedirs(fold_dir, exist_ok=True)
+        all_preds.extend(pred_classes.cpu().numpy().flatten())
+        all_masks.extend(masks.cpu().numpy().flatten())
 
-                save_image(imgs[i], os.path.join(fold_dir, "original.png"))
-                save_image(masks[i].float(), os.path.join(fold_dir, "mask.png"))
-                save_image(pred_classes[i].float(), os.path.join(fold_dir, "pred.png"))
+        for i, imgage_id in enumerate(image_ids):
+            fold_dir = os.path.join(save_image_dir, imgage_id)
+            os.makedirs(fold_dir, exist_ok=True)
+
+            save_image(imgs[i], os.path.join(fold_dir, "original.png"))
+            save_image(masks[i].float(), os.path.join(fold_dir, "mask.png"))
+            save_image(pred_classes[i].float(), os.path.join(fold_dir, "pred.png"))
 
     acc, dice, iou, fpr, fnr = calculate_metrics(all_masks, all_preds)
     
