@@ -2,528 +2,81 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
+from ultralytics import YOLO
 
-
-class UNet(nn.Module):
-    def __init__(self, num_classes=2, backbone='resnet50', pretrained=False):
-        # super(ResNetUNet, self).__init__()
-        super(UNet, self).__init__()
-        """
-
-
-        TO DO
-
-
-        """
-        # Unet encoder
-        self.encBlock1 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=3,
-                out_channels=64,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
-        )       
-        self.encBlockPool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.encBlock2 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=128,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-        )
-
-        self.encBlockPool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.encBlock3 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=256,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-        )
-
-        self.encBlockPool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.encBlock4 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=512,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-        ) 
-
-        self.encBlockPool4 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # bottleneck 
-        self.bottleneckBlock = nn.Sequential(
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=1024,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=1024,
-                out_channels=1024,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(inplace=True)
-        )
-    
-        # Unet decoder
-        self.transConv4 = nn.ConvTranspose2d(
-            in_channels=1024,
-            out_channels=512,
-            kernel_size=2,
-            stride=2
-        )
-
-        self.upBlock4 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=1024,
-                out_channels=512,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv3 = nn.ConvTranspose2d(
-            in_channels=512,
-            out_channels=256,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock3 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=256,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv2 = nn.ConvTranspose2d(
-            in_channels=256,
-            out_channels=128,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock2 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=128,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv1 = nn.ConvTranspose2d(
-            in_channels=128,
-            out_channels=64,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock1 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=64,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
-        )
-
-        self.outConv = nn.Conv2d(
-            in_channels=64,
-            out_channels=num_classes,
-            kernel_size=1
-        )
+class CNN(nn.Module):
+    def __init__(self, num_classes=2, pretrained=False):
+        super(CNN, self).__init__()
 
 
     def forward(self, x):
-        # Encoder
-        """
+        return x
 
+class Yolov8ResNet(nn.Module):
+    def __init__(self, num_classes=2):
+        super(Yolov8ResNet, self).__init__()
+        self.num_classes = num_classes
 
-        TO DO
+        self.yolo = YOLO("yolov8n.pt")
+        self.yolo.model.model[-1].nc = num_classes  # Update number of classes
+        self.yolo.model.model[-1].initialize_biases()
 
-
-        """
-        x = self.encBlock1(x)
-        skip1 = x
-        x = self.encBlockPool1(x) 
-        
-        x = self.encBlock2(x)
-        skip2 = x
-        x = self.encBlockPool2(x)
-
-        x = self.encBlock3(x)
-        skip3 = x
-        x = self.encBlockPool3(x)
-        
-        x = self.encBlock4(x)
-        skip4 = x
-        x = self.encBlockPool4(x)
-
-        x = self.bottleneckBlock(x)
-        # Decoder
-        """
-
-
-        TO DO
-
-
-        """
-        x = self.transConv4(x)
-        x = torch.cat((x, skip4), dim=1)
-        x = self.upBlock4(x)
-
-        x = self.transConv3(x)
-        x = torch.cat((x, skip3), dim=1)
-        x = self.upBlock3(x)
-
-        x = self.transConv2(x)
-        x = torch.cat((x, skip2), dim=1)
-        x = self.upBlock2(x)
-
-        x = self.transConv1(x)
-        x = torch.cat((x, skip1), dim=1)
-        x = self.upBlock1(x)
-        # 🟩 Final upsampling step
-        """
-
-
-        TO DO
-
-
-        """
-        out = self.outConv(x)
-        return out
+        self.yolo.model.model[:-1] = ResNetBackbone()
     
-class ResNetUNet(nn.Module):
-    def __init__(self, num_classes=2, backbone='resnet50', pretrained=True):
-        super(ResNetUNet, self).__init__()
-        self.ResNet = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
-
-        self.encBlock1 = nn.Sequential(
-            self.ResNet.conv1,
-            self.ResNet.bn1,
-            self.ResNet.relu,
-        )
-        self.encBlock1MaxPool = self.ResNet.maxpool
-        self.encBlock2 = self.ResNet.layer1
-        self.encBlock3 = self.ResNet.layer2
-        self.encBlock4 = self.ResNet.layer3
-        self.encBlock5 = self.ResNet.layer4
-
-        self.bottleneckBlock = nn.Sequential(
-            nn.Conv2d(
-                in_channels=2048,
-                out_channels=1024,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=1024,
-                out_channels=1024,
-                kernel_size=3,
-                padding=1 
-            ),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(inplace=True)
-        )
-    
-        # Unet decoder
-
-        self.transConv4 = nn.ConvTranspose2d(
-            in_channels=1024,
-            out_channels=512,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock4 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=2560,
-                out_channels=512,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv3 = nn.ConvTranspose2d(
-            in_channels=512,
-            out_channels=256,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock3 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=1280,
-                out_channels=256,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv2 = nn.ConvTranspose2d(
-            in_channels=256,
-            out_channels=128,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock2 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=640,
-                out_channels=128,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv1 = nn.ConvTranspose2d(
-            in_channels=128,
-            out_channels=64,
-            kernel_size=2,
-            stride=2
-        )
-        
-        self.upBlock1 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=320,
-                out_channels=64,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
-        )
-
-        self.transConv0 = nn.ConvTranspose2d(
-            in_channels=64,
-            out_channels=32,
-            kernel_size=2,
-            stride=2
-        )
-
-        self.upBlock0 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=96,
-                out_channels=32,
-                kernel_size=3,
-                padding=1
-            ),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(
-                in_channels=32,
-                out_channels=32,
-                kernel_size=3,
-                padding=1
-            ),  
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True)
-        )     
-        self.outConv = nn.Conv2d(
-            in_channels=32,
-            out_channels=num_classes,
-            kernel_size=1
-        )
-
-        #""" Frozen Encoder ResUNet1
-        for param in self.ResNet.parameters():
-            param.requires_grad = False
-        #"""
-
-        #""" Full-fine tuning + no aug ResUNet2
-        for param in self.ResNet.parameters():
-            param.requires_grad = True        
-        #"""
-
-        #""" Partial-fine tuning + no aug ResUNet3
-        for layer in [self.ResNet.layer1, self.ResNet.layer2, self.ResNet.layer3, self.ResNet.layer4]:
-            for param in layer.parameters():
-                param.requires_grad = False    
-        #"""
-
-        #""" Full-fine tuning + aug ResUNet4
-        for param in self.ResNet.parameters():
-            param.requires_grad = True        
-        #"""
-  
     def forward(self, x):
-        # Encoder
-        x = self.encBlock1(x)
-        skip0 = x
-        x = self.encBlock1MaxPool(x)
+        features = self.yolo.model.model[:-1](x)
+        x = self.yolo.model.model[-1](features)
 
-        x = self.encBlock2(x)
-        skip1 = x
+        return x
+
+class ResNetBackbone(nn.Module):
+    def __init__(self):
+        super(ResNetBackbone, self).__init__()
+        resNet = models.resnet50(pretrained=True)
         
-        x = self.encBlock3(x)
-        skip2 = x
+        self.fastConv = nn.Sequential(
+            resNet.conv1,
+            resNet.bn1,
+            resNet.relu,
+            resNet.maxpool
+        )
+        self.layer1 = resNet.layer1 
+        self.layer2 = resNet.layer2
+        self.layer3 = resNet.layer3
+        self.layer4 = resNet.layer4
 
-        x = self.encBlock4(x)
-        skip3 = x
+        # Below are 1x1 convolutional layers to adapt the ResNet feature maps to the expected channel sizes of the YOLO bottleneck layers
+        self.adapt2 = nn.Conv2d( # for ResNet layer2 output
+            in_channels=512,
+            out_channels=64,
+            kernel_size=1,
+        )
 
-        x = self.encBlock5(x)
-        skip4 = x
-        # bottleNeck
-        x = self.bottleneckBlock(x)
+        self.adapt3 = nn.Conv2d( # for ResNet layer3 output
+            in_channels=1024,
+            out_channels=128,
+            kernel_size=1,
+        )
 
-        # Decoder
-        x = self.transConv4(x)
-        x = torch.cat((x, skip4), dim=1)
-        x = self.upBlock4(x)
 
-        x = self.transConv3(x)
-        x = torch.cat((x, skip3), dim=1)
-        x = self.upBlock3(x)
+        self.adapt4 = nn.Conv2d( # for ResNet layer4 output
+            in_channels=2048,
+            out_channels=256,
+            kernel_size=1,
+        )
 
-        x = self.transConv2(x)
-        x = torch.cat((x, skip2), dim=1)
-        x = self.upBlock2(x)
+    def forward(self, x):
+        
+        x = self.fastConv(x)
+        x = self.layer1(x)
+        x2_raw = self.layer2(x)
+        x2 = self.adapt2(x2_raw)
 
-        x = self.transConv1(x)
-        x = torch.cat((x, skip1), dim=1)
-        x = self.upBlock1(x)
+        x3_raw = self.layer3(x2_raw)
+        x3 = self.adapt3(x3_raw)
 
-        x = self.transConv0(x)
-        x = torch.cat((x, skip0), dim=1)
-        x = self.upBlock0(x)
+        x4_raw = self.layer4(x3_raw)
+        x4 = self.adapt4(x4_raw)
 
-        out = self.outConv(x)
-        return out
+        x = [x2, x3, x4]
+        return x
