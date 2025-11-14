@@ -1,15 +1,6 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models
 from ultralytics import YOLO
-
-class CNN(nn.Module):
-    def __init__(self, num_classes=2, pretrained=False):
-        super(CNN, self).__init__()
-
-    def forward(self, x):
-        return x
 
 class Yolov8ResNet(nn.Module):
     def __init__(self, num_classes=2):
@@ -67,8 +58,11 @@ class ResNetBackbone(nn.Module):
     def forward(self, x):
         
         x = self.fastConv(x)
+
         x = self.layer1(x)
+        
         x2_raw = self.layer2(x)
+        
         x2 = self.adapt2(x2_raw)
 
         x3_raw = self.layer3(x2_raw)
