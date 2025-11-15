@@ -8,7 +8,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
-
+import numpy as np
 
 class ClassifierDataset(Dataset):
     """
@@ -39,7 +39,7 @@ class ClassifierDataset(Dataset):
         ])
 
         self.classification_map = {
-            "Non_fire": 0,
+            "Non_Fire": 0,
             "Fire": 1
         }
 
@@ -51,6 +51,9 @@ class ClassifierDataset(Dataset):
             for img_name in os.listdir(class_dir):
                 self.image_paths.append(os.path.join(class_dir, img_name))
                 self.labels.append(label)
+        
+        self.image_paths = np.array(self.image_paths)
+        self.labels = np.array(self.labels)
         
     def __len__(self) -> int:
         """
@@ -75,3 +78,23 @@ class ClassifierDataset(Dataset):
         image = self.img_transform(image)
 
         return image, label
+    
+
+class SubsetDataset(Dataset):
+    def __init__(self, image_paths, labels, transform):
+        self.image_paths = image_paths
+        self.labels = labels
+        self.transform = transform
+
+    def __len__(self):
+        """
+        Return the number of samples in the subset dataset.
+        """
+        return len(self.image_paths)
+
+    def __getitem__(self, i):
+        img = Image.open(self.image_paths[i]).convert("RGB")
+        img = self.transform(img)
+
+        label = self.labels[i]
+        return img, label

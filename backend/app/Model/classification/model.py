@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 
-class CNN(nn.Module):
-    def __init__(self, num_classes=2, pretrained=False):
-        super(CNN, self).__init__()
+class CNNModel(nn.Module):
+    def __init__(self, num_classes=2,):
+        super(CNNModel, self).__init__()
 
         self.layer1 = nn.Sequential(
             nn.Conv2d(
-                in_channels=num_classes,
+                in_channels=3,
                 out_channels=64,
                 kernel_size=5,
                 padding="same",

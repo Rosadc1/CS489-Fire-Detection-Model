@@ -7,48 +7,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class DiceLoss(nn.Module):
-    def __init__(self, smooth=1e-6):
-        super(DiceLoss, self).__init__()
-        self.smooth = smooth
-
-    def forward(self, logits, targets):
-        """
-        logits: [B, C, H, W]  (raw outputs from model)
-        targets: [B, H, W]    (ionteger class labels)
-        """
-        
-        
-        
-        """
-        
-        
-        TO DO
-        
-        
-        """
-        probability = torch.softmax(logits, dim=1)
-        pred = torch.argmax(probability, dim=1)
-        intersection = (pred * targets).sum(dim=(1, 2))
-        total = (pred + targets ).sum(dim=(1, 2))
-        dice_score = (2. * intersection + self.smooth) / (total + self.smooth)
-        dice_loss = 1 - dice_score.mean()
-        
-        
-        
-        return dice_loss
-
-class ComboLoss(nn.Module): 
-    def __init__(self, weight:torch.tensor, alpha=0.3):
-        super(ComboLoss, self).__init__()
+# Helper class for focal loss, wraps around sigmoid_focal_loss so that there is no need to manually change
+# the criterion parameter to not use nn.module
+class focal_loss(torch.nn.Module):
+    def __init__(self, alpha=0.25, gamma=2.0, reduction="mean"):
+        super(focal_loss, self).__init__()
         self.alpha = alpha
-        self.dice = DiceLoss()
-        self.bce =  torch.nn.CrossEntropyLoss(weight=weight)
-    
-    def forward(self, logits, targets): 
-        dice = self.dice(logits, targets)
-        bce = self.bce(logits, targets.long())
+        self.gamma = gamma
+        self.reduction = reduction
 
-        return self.alpha * bce + (1 - self.alpha) * dice
-    
+    def forward(self, inputs, targets):
+        pt = torch.where(targets == 1, inputs, 1 - inputs)
+        pt = pt.clamp(min=1e-6, max=1.0)
+        alphat = self.alpha * targets + (1-self.alpha) * (1-targets)
+
+        fl = -alphat * ((1 - pt) ** self.gamma) * torch.log(pt)
+        if self.reduction == "mean":
+            return fl.mean()
+        elif self.reduction == "sum":
+            return fl.sum()
+        return fl
     
