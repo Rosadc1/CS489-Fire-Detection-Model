@@ -66,7 +66,7 @@ def run_training(args: Any) -> None:
         test_dl  = DataLoader(test_ds,  batch_size=args.batch, shuffle=False, num_workers=1)
 
         # Initialize model, loss, and optimizer
-        model = CNNModel(args).to(DEVICE)
+        model = CNNModel(args.num_classes).to(DEVICE)
         
         # unweighted loss
         criterion = torch.nn.BCELoss()
