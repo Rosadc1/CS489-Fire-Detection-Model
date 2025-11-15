@@ -49,8 +49,11 @@ class ClassifierDataset(Dataset):
         for name, label in self.classification_map.items():
             class_dir = os.path.join(self.args.dataset_dir, name)
             for img_name in os.listdir(class_dir):
-                self.image_paths.append(os.path.join(class_dir, img_name))
-                self.labels.append(label)
+                img_path = os.path.join(class_dir, img_name)
+                if os.path.isfile(img_path) and img_name.lower().endswith((".png", ".jpg", ".jpeg")):
+                    self.image_paths.append(img_path)
+                    self.labels.append(label)
+
         
         self.image_paths = np.array(self.image_paths)
         self.labels = np.array(self.labels)

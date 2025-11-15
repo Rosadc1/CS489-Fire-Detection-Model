@@ -9,7 +9,6 @@ from dataset import ClassifierDataset, SubsetDataset
 from model import CNNModel
 from train import train_one_epoch, validate, test
 from config import config_args
-from losses import focal_loss
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -68,24 +67,11 @@ def run_training(args: Any) -> None:
         # Initialize model, loss, and optimizer
         model = CNNModel(args.num_classes).to(DEVICE)
         
-        # unweighted loss
-        criterion = torch.nn.BCELoss()
+        #loss
+        # weights = torch.tensor([1.0, 3.0])
+        # criterion = torch.nn.CrossEntropyLoss(weight=weights.to(DEVICE))
+        criterion = torch.nn.CrossEntropyLoss()
 
-        """ weighted loss
-        Npos, Nneg = (train_labels == classification_map["Fire"]).sum(), (train_labels == classification_map["Non_Fire"]).sum()
-        Wpos, Wneg = Nneg / (Npos + Nneg), Npos / (Npos + Nneg)
-
-        wpos_tensor = torch.tensor(Wpos, dtype=torch.float32).to(DEVICE)
-        wneg_tensor = torch.tensor(Wneg, dtype=torch.float32).to(DEVICE)
-        weights = torch.tensor([wpos_tensor, wneg_tensor]).to(DEVICE)
-
-        criterion = torch.nn.BCELoss(weight=weights)
-        """
-
-        """ Focal loss
-        gamma = 3
-        criterion = focal_loss(gamma=gamma)
-        """
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
@@ -147,7 +133,18 @@ def run_training(args: Any) -> None:
         folds_pred.append({f"fold_{fold + 1}":list(test_probs)})
         folds_labels.append({f"fold_{fold + 1}":list(test_labels)})
 
-        # Free memory and delete model to prevent leakage over folds
+        # Save Model and free memory and delete model to prevent leakage over folds
+        save_dir = f"./{args.version}_saved_models"
+        os.makedirs(save_dir, exist_ok=True)
+
+        # File name
+        file_name = f"_fold_{fold+1}.pth"
+        file_path = os.path.join(save_dir, file_name)
+
+        # Save model state_dict
+        torch.save(model.state_dict(), file_path)
+        
+        # Free memory
         del model
         torch.cuda.empty_cache()
 

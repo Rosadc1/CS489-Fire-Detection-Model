@@ -56,7 +56,7 @@ class CNNModel(nn.Module):
         self.global_pooling = nn.AdaptiveAvgPool2d((1,1))
         self.fc_out = nn.Linear(512, num_classes)
 
-        self.sigmoid = nn.Sigmoid()
+        self.identity = nn.Identity()
 
     def forward(self, x):
         x = self.layer1(x)
@@ -70,6 +70,6 @@ class CNNModel(nn.Module):
         x = self.global_pooling(x)
         x = torch.flatten(x, 1)
         x = self.fc_out(x)
-        x = self.sigmoid(x)
+        x = self.identity(x)
         
         return x
