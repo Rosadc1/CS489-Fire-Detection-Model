@@ -41,7 +41,6 @@ def run_training(args: Any) -> None:
     classification_ds = ClassifierDataset(args)
     image_paths = classification_ds.image_paths
     labels = classification_ds.labels
-    classification_map =  classification_ds.classification_map
 
     skf = StratifiedKFold(args.num_folds, shuffle=True, random_state=args.seed)
     fold_results = []
