@@ -1,15 +1,3 @@
-"""
-This module performs K-fold cross-validation training, validation, and testing
-of an image segmentation model using PyTorch. It manages data loading,
-training loops, model evaluation, and logging of per-fold metrics.
-
-The training pipeline includes:
-    - Reproducible seeding
-    - K-fold dataset splitting
-    - Model training and validation per epoch
-    - Metrics logging and saving for each fold
-    - Aggregation of fold-level test results
-"""
 import os
 import torch
 import numpy as np
