@@ -27,29 +27,26 @@ def train_one_epoch(
         Tuple[float, float]: Average training loss and accuracy for the epoch.
     """
     model.train()
-    total_train_loss = 0.0
+    total_loss = 0.0
     all_preds, all_labels = [], []
 
     for imgs, labels in dataloader:
-        # Move input data and labels to the target device
         imgs = imgs.to(device)
-        labels = labels.to(device, dtype=torch.float32)
+        labels = labels.to(device).long()
 
         optimizer.zero_grad()
-        outputs = model(imgs)
+        outputs = model(imgs)  # shape [batch, 2]
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
 
-        total_train_loss += loss.item() * imgs.size(0)
+        total_loss += loss.item() * imgs.size(0)
 
         pred_classes = torch.argmax(outputs, dim=1)
-        true_classes = torch.argmax(labels, dim=1)
-
         all_preds.extend(pred_classes.cpu().numpy())
-        all_labels.extend(true_classes.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
 
-    avg_loss = total_train_loss / len(dataloader.dataset)
+    avg_loss = total_loss / len(dataloader.dataset)
     acc = accuracy_score(all_labels, all_preds)
     return avg_loss, acc
 
@@ -59,7 +56,7 @@ def validate(
     dataloader: DataLoader,
     criterion: nn.Module,
     device: torch.device,
-) -> Tuple[float, float, float, float, float, float, float, float, int, int, int, int]:
+) -> Tuple[float, float, float, float, float, float, float, int, int, int, int]:
     """
     Validate the model on the provided dataset and compute detailed metrics.
 
@@ -81,23 +78,23 @@ def validate(
     with torch.no_grad():
         for imgs, labels in dataloader:
             imgs = imgs.to(device)
-            labels = labels.to(device, dtype=torch.float32)
+            labels = labels.to(device).long()
 
             outputs = model(imgs)
             loss = criterion(outputs, labels)
             total_loss += loss.item() * imgs.size(0)
-            probs = outputs[:, 1]
+
+            probs = torch.softmax(outputs, dim=1)[:, 1]
 
             pred_classes = torch.argmax(outputs, dim=1)
-            true_classes = torch.argmax(labels, dim=1)
-
             all_preds.extend(pred_classes.cpu().numpy())
-            all_labels.extend(true_classes.cpu().numpy())
-
+            all_labels.extend(labels.cpu().numpy())
             all_probs.extend(probs.cpu().numpy())
 
     avg_loss = total_loss / len(dataloader.dataset)
-    acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp = calculate_metrics(all_labels, all_preds, all_probs)
+    acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp = calculate_metrics(
+        all_labels, all_preds, all_probs
+    )
     return avg_loss, acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp
 
 
@@ -118,35 +115,24 @@ def test(
         Tuple[float, float, float, float, float, float]:
             Accuracy, precision, recall, F1 score, ROC AUC, and PR AUC.
     """
-
-    """
-    
-    
-    
-    To Do
-    
-    
-    
-    
-    """
     model.eval()
     all_preds, all_labels, all_probs = [], [], []
 
     with torch.no_grad():
         for imgs, labels in dataloader:
             imgs = imgs.to(device)
-            labels = labels.to(device)
+            labels = labels.to(device).long()
 
             outputs = model(imgs)
 
-            probs = outputs[:, 1]
+            probs = torch.softmax(outputs, dim=1)[:, 1]
 
             pred_classes = torch.argmax(outputs, dim=1)
-            true_classes = torch.argmax(labels, dim=1)
-
             all_preds.extend(pred_classes.cpu().numpy())
-            all_labels.extend(true_classes.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
             all_probs.extend(probs.cpu().numpy())
 
-    acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp = calculate_metrics(all_labels, all_preds, all_probs)
+    acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp = calculate_metrics(
+        all_labels, all_preds, all_probs
+    )
     return acc, prec, rec, spec, f1, roc_auc, pr_auc, tn, fp, fn, tp, all_probs, all_labels
