@@ -1,0 +1,1 @@
+export const LandingPageTitle = "Advanced AI-powered detection system for early identification of forest fires and smoke. Upload or capture an image to analyze potential threats in real-time."
