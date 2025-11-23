@@ -1,17 +1,16 @@
 import logging
 import base64
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
-from PIL import Image, ImageOps, UnidentifiedImageError
-import numpy as np
+from PIL import Image, UnidentifiedImageError
 import io
 import torch
 from torchvision import transforms
-from Model.classification.model import CNNModel
+from app.Model.classification.model import CNNModel
 from contextlib import asynccontextmanager
 from ultralytics import YOLO
 
-CNN_MODEL_PATH = "./Model/classification/classification.pth"
-YOLO_MODEL_PATH = "./Model/objectDetectionNoFolds/YoloNoFolds.pt"
+CNN_MODEL_PATH = "./app/Model/classification/classification.pth"
+YOLO_MODEL_PATH = "./app/Model/objectDetectionNoFolds/YoloNoFolds.pt"
 
 
 @asynccontextmanager
