@@ -35,6 +35,14 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan, title="Fire Object detection backend")
 
+@app.get("/")
+def root():
+    return {"message": "I am alive"}
+
+@app.get("/favicon.ico")
+def favicon():
+    return {}
+
 @app.post("/predict", status_code=status.HTTP_202_ACCEPTED)
 async def predict_fire(image: UploadFile = File(...)):
     try: 
