@@ -1,6 +1,7 @@
 import logging
 import base64
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
 import io
 import torch
@@ -34,6 +35,19 @@ async def lifespan(app:FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, title="Fire Object detection backend")
+
+origins = [
+    "http://localhost:5173",
+    "http://d3ml9honae97f3.cloudfront.net",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def root():
