@@ -210,6 +210,7 @@ __marimo__/
 # dataset
 backend/data/classification/Dataset/*
 backend/data/objectDetection/Dataset/*
+backend/data/*
 
 
 !backend/data/classification/Dataset/README.md
