@@ -1,4 +1,11 @@
-import type { detectModelRequest, detectModelResponse, getRequest, getResponse, predictModelRequest, predictModelResponse } from "@/types/service/modelsAPI";
+import type { 
+  detectModelRequest, 
+  detectModelResponse, 
+  getRequest, 
+  getResponse, 
+  predictModelRequest, 
+  predictModelResponse 
+} from "@/types/service/modelsAPI";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const modelsAPI = createApi({
@@ -9,21 +16,31 @@ export const modelsAPI = createApi({
     }),
     endpoints: (build) => ({
         predict: build.mutation<predictModelResponse, predictModelRequest>({
-            query: (request) => ({
-                url: `/predict`,
-                method: "POST",
-                body: request
-            })
+            query: (request) => {
+                const formData = new FormData();
+                formData.append('image', request.image);
+                
+                return {
+                    url: `/predict`,
+                    method: "POST",
+                    body: formData,
+                };
+            }
         }),
         detect: build.mutation<detectModelResponse, detectModelRequest>({
-            query: (request) => ({
-                url: `/detect`,
-                method: "POST",
-                body: request
-            })
+            query: (request) => {
+                const formData = new FormData();
+                formData.append('image', request.image);
+                
+                return {
+                    url: `/detect`,
+                    method: "POST",
+                    body: formData,
+                };
+            }
         }),
         root: build.query<getResponse, getRequest>({
-            query: () =>({
+            query: () => ({
                 url: `/`,
                 method: "GET",
             })
@@ -31,4 +48,4 @@ export const modelsAPI = createApi({
     })
 });
 
-export const {  useDetectMutation, usePredictMutation, useLazyRootQuery } = modelsAPI
+export const { useDetectMutation, usePredictMutation, useLazyRootQuery } = modelsAPI;
