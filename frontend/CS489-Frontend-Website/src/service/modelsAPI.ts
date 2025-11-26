@@ -39,6 +39,18 @@ export const modelsAPI = createApi({
                 };
             }
         }),
+        detect_v2: build.mutation<detectModelResponse, detectModelRequest>({
+            query: (request) => {
+                const formData = new FormData();
+                formData.append('image', request.image);
+                
+                return {
+                    url: `/detect_v2`,
+                    method: "POST",
+                    body: formData,
+                };
+            }
+        }),
         root: build.query<getResponse, getRequest>({
             query: () => ({
                 url: `/`,
