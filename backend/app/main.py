@@ -159,9 +159,8 @@ async def detect_fire_sahi(image: UploadFile = File(...)):
             }
         })
     
-    numpy_img = Image.fromarray(result.image)
     buffered = io.BytesIO()
-    numpy_img.save(buffered, format="PNG")
+    result.image.save(buffered, format="PNG")
     buffered.seek(0)
     # Convert to Base64 string
     img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
