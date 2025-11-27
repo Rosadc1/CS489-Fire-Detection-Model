@@ -51,12 +51,10 @@ export default function App() {
         // Classification Stage
         const classifyResult = await predict({ image: file }).unwrap();
         
-        // Type guard: Check if it's an error response
         if ('detail' in classifyResult) {
           throw new Error(classifyResult.detail);
         }
-        
-        // Now TypeScript knows it's the success type!
+      
         if (classifyResult.predicted_class === "no_fire") {
           setResult({
             classification: "no_fire",
@@ -74,11 +72,10 @@ export default function App() {
           // Object Detection Stage
           const detectResult = await detect({ image: file }).unwrap();
           
-          // Type guard for detect response
           if ('detail' in detectResult) {
             throw new Error(detectResult.detail);
           }
-          
+
           setResult({
             classification: "fire",
             confidence: classifyResult.probability_fire,
@@ -133,7 +130,7 @@ export default function App() {
             />
           )}
           
-          {!selectedImage && <InfoCard />}
+         {!selectedImage && <InfoCard />}
         </div>
       </div>
     </>

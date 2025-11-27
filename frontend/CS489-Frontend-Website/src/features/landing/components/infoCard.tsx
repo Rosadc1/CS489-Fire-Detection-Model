@@ -14,7 +14,7 @@ export function InfoCard() {
           <StepCard
             number={1}
             title="Upload or Capture"
-            description="Select a forest image from your device or take a photo with your camera"
+            description="Select an image from your device or take a photo with your camera"
           />
           <StepCard
             number={2}
@@ -24,12 +24,12 @@ export function InfoCard() {
           <StepCard
             number={3}
             title="Threat Localization"
-            description="If a threat is detected, the system pinpoints the approximate origin location"
+            description="If a threat is detected, bounding boxes highlight fire and smoke areas in the image"
           />
           <StepCard
             number={4}
             title="Rapid Response"
-            description="Results enable faster emergency response and help minimize environmental damage"
+            description="Results enable faster emergency response thus minimizing environmental damage"
           />
         </div>
       </div>
