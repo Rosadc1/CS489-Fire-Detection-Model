@@ -113,4 +113,72 @@ Runs **YOLO (You Only Look Once)** object detection on the uploaded image. It re
 
 -----
 
-Let me know if you have any other adjustments or need help with code examples for these endpoints\!
+### 3\. `POST /detect_v2`
+
+**Description**
+
+Runs **YOLO object detection with SAHI (Sliced Aided Hyper Inference)** on the uploaded image for improved small object detection. It returns the annotated image and detailed bounding box information for detected fire objects.
+
+#### Request
+
+  * **Method:** `POST`
+  * **Content-Type:** `multipart/form-data`
+  * **Body:**
+      * **image:** File (required) - The image for object detection.
+
+#### Successful Response — `200 OK`
+
+```json
+{
+  "image": "base64-encoded PNG string",
+  "predicted_boxes": [
+    {
+      "name": "fire",
+      "class": 0,
+      "confidence": 0.875,
+      "box": {
+        "x1": 150.5,
+        "x2": 450.75,
+        "y1": 200.25,
+        "y2": 550.0
+      }
+    }
+  ]
+}
+// Note: If no fire is detected, the "predicted_boxes" array will be empty:
+// { "image": "...", "predicted_boxes": [] }
+```
+
+#### Return Types
+
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| **image** | `string` | A **base64-encoded PNG** string of the uploaded image with YOLO bounding boxes drawn on it. |
+| **predicted\_boxes** | `array` (of objects) | A list of detected fire objects. **This array will be empty (`[]`) if no fire objects are detected.** |
+
+#### `predicted_boxes` Object Structure
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| **name** | `string` | The human-readable name of the detected object (e.g., "fire"). |
+| **class** | `number` (integer) | The numerical class ID of the detected object (0 for fire). |
+| **confidence** | `number` (float) | The confidence score of the detection (0.0 to 1.0). |
+| **box** | `object` | An object containing the bounding box coordinates. |
+| **box.x1/y1** | `number` (float) | The **top-left** coordinates of the bounding box in pixels. |
+| **box.x2/y2** | `number` (float) | The **bottom-right** coordinates of the bounding box in pixels. |
+
+#### Technical Details
+
+  * **Slice Height/Width:** 128 pixels with 20% overlap for improved detection of small objects
+  * **Confidence Threshold:** 0.3 (30% minimum confidence for detection)
+  * **Filtered Output:** Only returns predictions for class 0 (fire objects)
+
+#### Error Response — `400 Bad Request`
+
+```json
+{ 
+  "detail": "Uploaded file is not an image" 
+}
+```
+
+-----

@@ -9,6 +9,8 @@ from torchvision import transforms
 from app.Model.classification.model import CNNModel
 from contextlib import asynccontextmanager
 from ultralytics import YOLO
+from sahi import AutoDetectionModel
+from sahi.predict import get_sliced_prediction
 
 CNN_MODEL_PATH = "./app/Model/classification/classification.pth"
 YOLO_MODEL_PATH = "./app/Model/objectDetectionNoFolds/YoloNoFolds.pt"
@@ -25,6 +27,13 @@ async def lifespan(app:FastAPI):
     app.state.cnn_model = cnn_model
     logger.info("Loading yolo object detection model...")
     app.state.yolo_model = YOLO(YOLO_MODEL_PATH)
+    app.state.yolo_sahi_model = AutoDetectionModel.from_pretrained(
+        model_type="ultralytics",
+        model_path=YOLO_MODEL_PATH,
+        confidence_threshold=0.3,
+        device="cpu"
+
+    )
     logger.info("Models loaded successfully!")
 
     yield
@@ -96,11 +105,10 @@ async def detect_fire_in_image(image: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Uploaded file is not an image")
     
     # run Yolo model and get results
-    results = app.state.yolo_model.predict(img, imgsz=256)
+    results = app.state.yolo_model.predict(img, imgsz=640)
     img_result = results[0]
     annotated_img = img_result.plot()
     result_img = Image.fromarray(annotated_img)
-    img_result.show()
     # convert results to send to frontend
     buf = io.BytesIO()
     result_img.save(buf, format="JPEG")
@@ -114,4 +122,52 @@ async def detect_fire_in_image(image: UploadFile = File(...)):
     }
     
 
+@app.post("/detect_v2", status_code=status.HTTP_200_OK)
+async def detect_fire_sahi(image: UploadFile = File(...)):
+    try: 
+        img_bytes = await image.read()
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    except UnidentifiedImageError: 
+        raise HTTPException(status_code=400, detail="Uploaded file is not an image")
+    result = get_sliced_prediction(
+            img, 
+            app.state.yolo_sahi_model,
+            slice_height=128,
+            slice_width=128,
+            overlap_height_ratio=0.2,
+            overlap_width_ratio=0.2    
+        )
+    
+    allowed_classes = [0]
+
+    result.object_prediction_list = [
+        pred for pred in result.object_prediction_list
+        if pred.category.id in allowed_classes
+    ]
+
+    boxes = []
+    for pred in result.object_prediction_list:
+        boxes.append({
+            "name": pred.category.name,
+            "class": pred.category.id,
+            "confidence": pred.score.value,
+            "box": {
+                "x1": pred.bbox.minx,
+                "x2": pred.bbox.maxx,
+                "y1": pred.bbox.miny,
+                "y2": pred.bbox.maxy
+            }
+        })
+    
+    buffered = io.BytesIO()
+    result.image.save(buffered, format="PNG")
+    buffered.seek(0)
+    # Convert to Base64 string
+    img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+   
+    return {
+        "image": img_base64, 
+        "predicted_boxes": boxes
+    }
+    
 
