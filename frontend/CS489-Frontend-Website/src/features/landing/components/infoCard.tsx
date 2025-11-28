@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 
 export function InfoCard() {
   return (
-    <Card className="p-8 shadow-2xl border-0 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 backdrop-blur-sm">
+    <Card className="p-8 shadow-2xl border-0 bg-linear-to-br from-orange-50 via-amber-50 to-orange-50 backdrop-blur-sm">
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="h-1 rounded-full"></div>
@@ -18,7 +18,7 @@ export function InfoCard() {
           />
           <StepCard
             number={2}
-            title="AI Classification"
+            title="Classification"
             description="Our deep learning model analyzes the image for fire, smoke, or safe conditions"
           />
           <StepCard

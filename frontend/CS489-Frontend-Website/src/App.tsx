@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { WaveBackground } from "./features/landing/components/WaveBackground";
 import { LandingPage } from "./features/landing/components/landingPage";
-import { UploadImageContainer } from "./features/landing/components/uploadImageContainer";
-import { ResultsContainer } from "./features/landing/components/resultsContainer";
+import { UploadImageContainer } from "./features/landing/components/uploadImage";
+import { ResultsContainer } from "./features/landing/components/results";
 import { InfoCard } from "./features/landing/components/infoCard";
-import { usePredictMutation, useDetectMutation } from "./service/modelsAPI";
+import { usePredictMutation, useDetectV2Mutation } from "./service/modelsAPI";
 
 type DetectionResult = {
   classification: "fire" | "no_fire";
@@ -34,7 +34,7 @@ export default function App() {
 
   // RTK Query hooks
   const [predict] = usePredictMutation();
-  const [detect] = useDetectMutation();
+  const [detectV2] = useDetectV2Mutation();
 
   const handleImageSelect = async (file: File) => {
     if (!file) return;
@@ -70,7 +70,7 @@ export default function App() {
           setProcessingStage("localizing");
           
           // Object Detection Stage
-          const detectResult = await detect({ image: file }).unwrap();
+          const detectResult = await detectV2({ image: file }).unwrap();
           
           if ('detail' in detectResult) {
             throw new Error(detectResult.detail);
