@@ -128,7 +128,7 @@ export function ResultsContainer({
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <AlertTriangle className="w-4 h-4 text-blue-600" />
                       </div>
-                      <span className="font-semibold text-gray-800">Confidence Score</span>
+                      <span className="font-semibold text-gray-800">Classification Confidence Score</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">

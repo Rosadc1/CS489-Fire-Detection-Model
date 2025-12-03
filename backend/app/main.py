@@ -48,6 +48,7 @@ app = FastAPI(lifespan=lifespan, title="Fire Object detection backend")
 origins = [
     "http://localhost:5173",
     "http://d3ml9honae97f3.cloudfront.net",
+    "http://cs489-website.s3-website-us-west-1.amazonaws.com"
 ]
 
 app.add_middleware(
