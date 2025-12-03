@@ -12,7 +12,7 @@ export const modelsAPI = createApi({
     reducerPath: "modelsAPI",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://127.0.0.1:8000"
+        baseUrl: "http://cs489-load-balancer-1769459892.us-west-1.elb.amazonaws.com"
     }),
     endpoints: (build) => ({
         predict: build.mutation<predictModelResponse, predictModelRequest>({
